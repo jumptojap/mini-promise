@@ -11,11 +11,24 @@ class Promise{
         this.state = PENDING
         const resolve = res => {
             if(this.state === PENDING){
-                this.state = FULLFILLED
-                this.value = res
-                this.onFulfilledCallbacks.forEach(fn => fn())
+                resolvePromise(this, res, r => {
+                    this.state = FULLFILLED
+                    this.value = r
+                    this.onFulfilledCallbacks.forEach(fn => fn())
+                }, e => {
+                    this.state = REJECTED
+                    this.reason = e
+                    this.onRejectedCallbacks.forEach(fn => fn())
+                })
             }
         }
+        // const resolve = res => {
+        //     if(this.state === PENDING){
+        //         this.state = FULLFILLED
+        //         this.value = res
+        //         this.onFulfilledCallbacks.forEach(fn => fn())
+        //     }
+        // }
         const reject = err => {
             if(this.state === PENDING){
                 this.state = REJECTED
@@ -199,6 +212,35 @@ function resolvePromise(promise, res, resolve, reject){
         resolve(res)
     }
 }
+// function resolvePromise(promise, value, resolve, reject){
+//     if(promise === value)
+//         reject(new TypeError("循环嵌套"))
+//     if(typeof value === 'object' && value !== null || typeof value === 'function'){
+//         let called = false
+//         try {
+//             const then = value.then
+//             if(typeof then === "function"){
+//                 then.call(value, res => {
+//                     if(called)  return
+//                     called = true
+//                     resolvePromise(promise, res, resolve, reject)
+//                 }, err => {
+//                     if(called)  return
+//                     called = true
+//                     reject(err)
+//                 })
+//             }else{
+//                 resolve(value)
+//             }
+//         } catch (error) {
+//             if(called)  return
+//             called = true
+//             reject(error)
+//         }
+//     }else{
+//         resolve(value)
+//     }
+// }
 Promise.defer = Promise.deferred = function(){
     let dfd = {}
     dfd.promise = new Promise((resolve, reject) => {
